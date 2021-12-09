@@ -4,7 +4,7 @@
 version: '2.4'
 services:
   pharus:
-    image: jverswijver/pharus:0.2.3.beta.0
+    image: jverswijver/pharus:0.2.3-beta.1-dj12.9
     environment:
       # - FLASK_ENV=development # enables logging to console from Flask
       - API_SPEC_PATH=/main/specs/config.yaml # for dynamic api spec
@@ -83,7 +83,7 @@ services:
     networks:
       - main
   fakeservices.datajoint.io:
-    image: datajoint/nginx:v0.0.18
+    image: datajoint/nginx:v0.0.19
     environment:
       - ADD_pharus_TYPE=REST
       - ADD_pharus_ENDPOINT=pharus:5000

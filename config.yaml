@@ -1,9 +1,65 @@
-version: 'v0.0.0'
-LabBook: null
+version: '0.0.0'
 SciViz:
   auth:
     mode: database
   pages:
+    Home:
+      route: /home
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 1500
+          components:
+            landing description:
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                # DataJoint™ powered visualization that adapts to *your* workflows
+
+                ![](https://images.squarespace-cdn.com/content/v1/60e5a50c0632d17c36f6b2d3/1638463454411-SMVPVS9EBPLU9T9T5YMN/unsplash-image-Pyut03Gn98w.jpg?format=1000w)
+
+                ## Features
+
+                - Visualization that can **keep up with changing needs** of your lab
+                - Standardized YAML build specification providing a **Low-Code web application
+                  design** experience
+                - Transport-optimization by leveraging **client-side rendering** with
+                  [React](https://reactjs.org/)
+                - **Python+[DataJoint](https://www.datajoint.org/) interoperability** to allow
+                  streamlined integration
+                - Clear separation between business logic from product features i.e. **customization
+                  through configuration**
+                - **Backend-optimized** page rendering built for big-data and scale
+                - Comprehensive permission and security design enabling **flexible access control**
+                  modes
+
+                ## Component Library Types
+
+                - `page`: Unique tabbed pages to separate areas within your single-page application
+                - `grid`: Layout structure for organizing subcomponents (as seen in
+                  [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
+                  - `fixed`: For when you know exactly how many components you'd like to render
+                  - `dynamic`: Component templating mode when you need to render realtime views that
+                    vary in number of components
+                - `table`: Sometimes there's nothing better than a table view
+                  - paging
+                  - sorting
+                  - filtering
+                  - font/backgrond highlighting
+                - `metadata`: Great for showing context info for particular views
+                - `plot`: Let's face it, we are going to need to be able to plot stuff
+                  - plotly
+
+                ## Acknowledgements
+
+                We like to thank [internationalbrainlab.org](internationalbrainlab.org) for releasing
+                publicly various sets of experimental workflow data. In order to provide a DEMO that
+                seems more *relevant* we've used this public data to help grasp some of the concepts
+                of what is currently supported in SciViz.
     Sessions:
       route: /sessions
       grids:
@@ -19,13 +75,21 @@ SciViz:
               width: 1
               type: markdown
               text: |
-                # Description
-                Here is a sample view of all the sessions within the IBL public data set.
-                Feel free to inspect our backend-optimized paging, sorting, and filtering
-                built for scale.
-                Also, to illustrate some of our other features, we've chosen to illustrate
-                here deceased subjects with a **RED** font and *recent* sessions to be
-                highlighted in **YELLOW**. 
+                ## Description
+
+                Below is a summary of experimental session data from an acquisition system. The data
+                set is certainly not in the realm of *big data* but there is sufficient records here
+                to demonstrate the **backend-optimized** paging, sorting, and filtering. This is
+                currently pointed to a live system so please feel free to try out the features and
+                interact with the data.
+
+                We've also configured font and background highlighting with the following rules:
+                - Color the font in **RED** for the sessions where the subject is deceased.
+                - Color the background in **YELLOW** if the session was started later than
+                  `2020-09-01`.
+
+                These rules along with configuring the backend query is entirely configurable
+                using the standard spec file and DataJoint.
             Sessions:
               route: /sessions_query
               x: 0
@@ -37,131 +101,50 @@ SciViz:
                 def restriction(**kwargs):
                     return dict(**kwargs)
               dj_query: >
-                def dj_query(ibl_acquisition, ibl_subject, ibl_ephys, ibl_analyses_behavior,
-                             ibl_plotting_behavior):
-                    sess_proj = ibl_acquisition.Session().aggr(
-                        ibl_acquisition.SessionProject().proj(
-                            'session_project', dummy2='"x"') * dj.U('dummy2'),
-                        session_project='IFNULL(session_project, "unassigned")',
-                        keep_all_rows=True
-                    )
-                    psych_curve = ibl_acquisition.Session().aggr(
-                        ibl_plotting_behavior.SessionPsychCurve().proj(dummy='"x"') * dj.U('dummy'),
-                        nplot='count(dummy)',
-                        keep_all_rows=True)
-                    ephys_data = ibl_acquisition.Session().aggr(
-                        ibl_ephys.ProbeInsertion().proj(dummy3='"x"') * dj.U('dummy3'),
-                        nprobe='count(dummy3)',
-                        keep_all_rows=True)
-                    trainingStatus = (
-                        ibl_acquisition.Session().aggr(
-                            ibl_analyses_behavior.SessionTrainingStatus().proj(dummy4='"x"') * dj.U('dummy4'),
-                            keep_all_rows=True) *
-                        ibl_acquisition.Session().aggr(
-                            ibl_analyses_behavior.SessionTrainingStatus(),
-                            training_status='training_status',
-                            good_enough_for_brainwide_map='good_enough_for_brainwide_map',
-                            keep_all_rows=True)
-                        )
+                def dj_query(ibl_subject, ibl_acquisition):
                     subj = ibl_subject.Subject().aggr(
                         ibl_subject.Death().proj('death_date') * dj.U('death_date'),
                         death_date='IFNULL(death_date, NULL)',
                         keep_all_rows=True)
-
-                    q = (ibl_acquisition.Session * sess_proj * psych_curve * ephys_data * subj *
-                         ibl_subject.SubjectLab * ibl_subject.SubjectUser * trainingStatus)
-                    # need to revert to datajoint 0.12.9
-                    q = q.proj(
+                    q = (ibl_acquisition.Session * subj).proj(
                         ...,
-                        # _sciviz_font='IF(death_date IS NOT NULL, "rgb(255, 0, 0)", NULL)', # deceased mice
-                        # _sciviz_background='IF(session_start_time > "2020-09-01", "rgba(255, 255, 50, 0.16)", NULL)', # recent sessions
+                        _sciviz_font='IF(death_date IS NOT NULL, "rgb(255, 0, 0)", NULL)', # deceased mice
+                        _sciviz_background='IF(session_start_time > "2020-09-01", "rgba(255, 255, 50, 0.16)", NULL)', # recent sessions
                         )
                     return dict(query=q, fetch_args=[])
-    # Plots:
-    #   route: /plots
-    #   grids:
-    #     grid1:
-    #       type: fixed
-    #       max_component_per_page: 20
-    #       columns: 2
-    #       row_height: 700
-    #       components:
-    #         component1:
-    #           route: /plot1
-    #           type: plot:plotly:stored_json
-    #           x: 0
-    #           y: 0
-    #           height: 1
-    #           width: 1
-    #           restriction: >
-    #             def restriction(**kwargs):
-    #                 return dict(**kwargs, p_id=2)
-    #           dj_query: >
-    #             def dj_query(test_group1_simple):
-    #                 PlotlyTable = test_group1_simple.PlotlyTable
-    #                 return dict(query=PlotlyTable, fetch_args=['plot'])
-    #         component2:
-    #           type: markdown
-    #           x: 1
-    #           y: 0
-    #           height: 1
-    #           width: 1
-    #           text: |
-    #             # This is a plotly plot
-
-    #             *Nice*
-
-    #             🤔 yaml apparently allows emojis
-    # Metadata:
-    #   route: /metadata
-    #   grids:
-    #     grid2:
-    #       type: fixed
-    #       columns: 6
-    #       row_height: 233
-    #       components:
-    #         comp:
-    #           type: metadata
-    #           route: /metadata1
-    #           x: 1
-    #           y: 1
-    #           height: 1
-    #           width: 1
-    #           restriction: >
-    #             def restriction(**kwargs):
-    #                 return dict(**kwargs, b_id=19)
-    #           dj_query: >
-    #             def dj_query(test_group1_simple):
-    #                 TableA, TableB = (test_group1_simple.TableA,
-    #                                   test_group1_simple.TableB)
-    #                 return dict(query=(TableA * TableB), fetch_args=[])
-    #         desc:
-    #           type: markdown
-    #           x: 3
-    #           y: 0
-    #           height: 3
-    #           width: 3
-    #           text: |
-    #             # This is a metadata component
-    #             it is not very useful by itself but when combined with the dynamic
-    #             component generator it can provide a useful description of what the other
-    #             components are.
     Psychometric_Curves:
       route: /psychometric_curves
       grids:
         grid1:
+          type: fixed
+          columns: 1
+          row_height: 250
+          components:
+            session table description:
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                ## Description
+
+                Let's suppose that you need a view to be more responsive to changing, realtime
+                events. For instance, you'd like to see Psychometric curves for all newer
+                sessions from 2 weeks ago (currently pinned to `2020-09-11`). This satisfies
+                this by including both the metadata and the Psychometric curve for a given
+                recent session.
+        grid2:
           route: /psychometric_curves_restrictions
           type: dynamic
-          columns: 3
-          row_height: 600
+          columns: 2
+          row_height: 500
           restriction: >
             def restriction(**kwargs):
-                return dj.AndList([dict(**kwargs), "session_start_time > '2020-09-20'"])
+                return dj.AndList([dict(**kwargs), "session_start_time > '2020-09-18'"])
           dj_query: >
             def dj_query(ibl_plotting_behavior):
-                q = ibl_plotting_behavior.SessionPsychCurve.proj()
-                return dict(query=q, fetch_args=[])
-          # issue with how datetime is being interpreted when passed as qp
+                return dict(query=ibl_plotting_behavior.SessionPsychCurve.proj(), fetch_args=[])
           component_templates:
             Metadata:
               route: /psychometric_curves_metadata
@@ -172,18 +155,18 @@ SciViz:
               dj_query: >
                 def dj_query(ibl_plotting_behavior):
                     q = ibl_plotting_behavior.SessionPsychCurve.proj(
-                      ...,
-                      '-plotting_data',
-                      '-fit_pars',
-                      )
+                        ...,
+                        '-plotting_data',
+                        '-fit_pars',
+                        )
                     return dict(query=q, fetch_args=[])
-            # comp1:
-            #   route: /myPlot
-            #   type: plot:plotly:stored_json
-            #   restriction: >
-            #     def restriction(**kwargs):
-            #         return dict(**kwargs)
-            #   dj_query: >
-            #     def dj_query(test_group1_simple):
-            #         MousePlots = test_group1_simple.MousePlots
-            #         return dict(query=(MousePlots), fetch_args=['plot'])
+            Psychometric Plot:
+              route: /psychometric_curves_plot
+              type: plot:plotly:stored_json
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(ibl_plotting_behavior):
+                    return dict(query=ibl_plotting_behavior.SessionPsychCurve(), fetch_args=['plotting_data'])
+
