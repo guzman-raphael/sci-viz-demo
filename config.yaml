@@ -3,55 +3,59 @@ SciViz:
   auth:
     mode: database
   extra_components:
-    config: >
-      import pharus.component_library
+    config: |
+      import datajoint as dj
+      import inspect
+      from datetime import datetime
+      from flask import request
+      from pharus.component_interface import type_map, QueryComponent
 
-      class PlotPlotlyXy(QueryComponent):
-      def __init__(self, *args, **kwargs):
-          super().__init__(*args, **kwargs)
-          self.frontend_map = {
-              "source": "sci-viz/src/Components/Plots/FullPlotly.tsx",
-              "target": "FullPlotly",
-          }
-          self.response_examples = {
-              "dj_query_route": {
-                  "data": [
-                      {
-                          "x": [
-                              "giraffes",
-                              "orangutans",
-                              "monkeys"
-                          ],
-                          "y": [
-                              20,
-                              14,
-                              23
-                          ],
-                          "type": "bar"
+      class PlotPlotlyRemoveFirst(QueryComponent):
+          def __init__(self, *args, **kwargs):
+              super().__init__(*args, **kwargs)
+              self.frontend_map = {
+                  "source": "sci-viz/src/Components/Plots/FullPlotly.tsx",
+                  "target": "FullPlotly",
+              }
+              self.response_examples = {
+                  "dj_query_route": {
+                      "data": [
+                          {
+                              "x": [
+                                  "giraffes",
+                                  "orangutans",
+                                  "monkeys"
+                              ],
+                              "y": [
+                                  20,
+                                  14,
+                                  23
+                              ],
+                              "type": "bar"
+                          }
+                      ],
+                      "layout": {
+                          "title": "Total Number of Animals"
                       }
-                  ],
-                  "layout": {
-                      "title": "Total Number of Animals"
-                  }
-              },
-          }
+                  },
+              }
 
-      def dj_query_route(self, jwt_payload: dict):
+          def dj_query_route(self, jwt_payload: dict):
+              djconn = dj.conn(jwt_payload['databaseAddress'], jwt_payload['username'],
+                               jwt_payload['password'], reset=True)
+              vm_list = [dj.VirtualModule(s, s, connection=djconn)
+                        for s in inspect.getfullargspec(self.dj_query).args]
+              djdict = self.dj_query(*vm_list)
+              djdict['query'] = djdict['query'] & self.restriction()
+              djdict['query'] = djdict['query'] & {k: datetime.fromtimestamp(int(v))
+                                                   if djdict['query'].heading.attributes[k].type
+                                                   in ('datetime')
+                                                   else v for k, v in request.args.items()}
+              plotly_json = djdict['query'].fetch1(*djdict['fetch_args'])
+              plotly_json['data'] = [plotly_json['data'][1]]
+              return plotly_json
 
-          djconn = dj.conn(jwt_payload['database.host'], jwt_payload['database.username'],
-                           jwt_payload['database.password'], reset=True)
-          vm_list = [dj.VirtualModule(s, s, connection=djconn)
-                    for s in inspect.getfullargspec(self.dj_query).args]
-          djdict = self.dj_query(*vm_list)
-          djdict['query'] = djdict['query'] & self.restriction()
-          djdict['query'] = djdict['query'] & {k: datetime.fromtimestamp(int(v))
-                                              if djdict['query'].heading.attributes[k].type
-                                              in ('datetime')
-                                              else v for k, v in request.args.items()}
-          plotly_json = djdict['query'].fetch1(*djdict['fetch_args'])
-          return plotly_json
-
-        component_library.type_map = dict({'plot:plotly:xy': PlotPlotlyXy}, **component_library.type_map)
+      type_map = dict({'plot:plotly:remove_first': PlotPlotlyRemoveFirst}, **type_map)
   pages:
     Home:
       route: /home
@@ -228,7 +232,7 @@ SciViz:
               y: 0
               height: 2
               width: 2
-              type: plot:plotly:xy
+              type: plot:plotly:remove_first
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
