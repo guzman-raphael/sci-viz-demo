@@ -2,6 +2,56 @@ version: '0.0.0'
 SciViz:
   auth:
     mode: database
+  extra_components:
+    config: >
+      import pharus.component_library
+
+      class PlotPlotlyXy(QueryComponent):
+      def __init__(self, *args, **kwargs):
+          super().__init__(*args, **kwargs)
+          self.frontend_map = {
+              "source": "sci-viz/src/Components/Plots/FullPlotly.tsx",
+              "target": "FullPlotly",
+          }
+          self.response_examples = {
+              "dj_query_route": {
+                  "data": [
+                      {
+                          "x": [
+                              "giraffes",
+                              "orangutans",
+                              "monkeys"
+                          ],
+                          "y": [
+                              20,
+                              14,
+                              23
+                          ],
+                          "type": "bar"
+                      }
+                  ],
+                  "layout": {
+                      "title": "Total Number of Animals"
+                  }
+              },
+          }
+
+      def dj_query_route(self, jwt_payload: dict):
+
+          djconn = dj.conn(jwt_payload['database.host'], jwt_payload['database.username'],
+                           jwt_payload['database.password'], reset=True)
+          vm_list = [dj.VirtualModule(s, s, connection=djconn)
+                    for s in inspect.getfullargspec(self.dj_query).args]
+          djdict = self.dj_query(*vm_list)
+          djdict['query'] = djdict['query'] & self.restriction()
+          djdict['query'] = djdict['query'] & {k: datetime.fromtimestamp(int(v))
+                                              if djdict['query'].heading.attributes[k].type
+                                              in ('datetime')
+                                              else v for k, v in request.args.items()}
+          plotly_json = djdict['query'].fetch1(*djdict['fetch_args'])
+          return plotly_json
+
+        component_library.type_map = dict({'plot:plotly:xy': PlotPlotlyXy}, **component_library.type_map)
   pages:
     Home:
       route: /home
@@ -66,7 +116,7 @@ SciViz:
         grid1:
           type: fixed
           columns: 1
-          row_height: 250
+          row_height: 275
           components:
             session table description:
               x: 0
@@ -90,6 +140,9 @@ SciViz:
 
                 These rules along with configuring the backend query is entirely configurable
                 using the standard spec file and DataJoint.
+
+                Also, feel free to *click* below on a specific row of interest to be taken to a
+                single-session, hidden page.
             Sessions:
               route: /sessions_query
               x: 0
@@ -97,6 +150,7 @@ SciViz:
               height: 4
               width: 1
               type: table
+              link: /session
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
@@ -112,7 +166,76 @@ SciViz:
                         _sciviz_background='IF(session_start_time > "2020-09-01", "rgba(255, 255, 50, 0.16)", NULL)', # recent sessions
                         )
                     return dict(query=q, fetch_args=[])
-    Psychometric_Curves:
+    Session:
+      hidden: true
+      route: /session
+      grids:
+        grid1:
+          type: fixed
+          columns: 2
+          row_height: 250
+          components:
+            session table description:
+              x: 0
+              y: 0
+              height: 1
+              width: 2
+              type: markdown
+              text: |
+                ## Description
+
+                This is a hidden session page providing metadata and plotting details for an individual session.
+                Restrictions are provided based on the primary key passed in as query parameters to the page's URL.
+            session meta 1:
+              route: /session_metadata1_query
+              x: 0
+              y: 1
+              height: 1
+              width: 1
+              type: metadata
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(ibl_subject, ibl_acquisition):
+                    subj = ibl_subject.Subject().aggr(
+                        ibl_subject.Death().proj('death_date') * dj.U('death_date'),
+                        death_date='IFNULL(death_date, NULL)',
+                        keep_all_rows=True)
+                    q = (ibl_acquisition.Session * subj).proj('session_lab', 'task_protocol')
+                    return dict(query=q, fetch_args=[])
+            session meta 2:
+              route: /session_metadata2_query
+              x: 1
+              y: 1
+              height: 1
+              width: 1
+              type: metadata
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(ibl_subject, ibl_acquisition):
+                    subj = ibl_subject.Subject().aggr(
+                        ibl_subject.Death().proj('death_date') * dj.U('death_date'),
+                        death_date='IFNULL(death_date, NULL)',
+                        keep_all_rows=True)
+                    q = (ibl_acquisition.Session * subj).proj('subject_uuid', 'death_date')
+                    return dict(query=q, fetch_args=[])
+            Reaction time - trial number:
+              route: /session_plot_query
+              x: 2
+              y: 0
+              height: 2
+              width: 2
+              type: plot:plotly:xy
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(ibl_plotting_behavior):
+                    return dict(query=ibl_plotting_behavior.SessionReactionTimeTrialNumber, fetch_args=['plotting_data'])
+    Psychometric Curves:
       route: /psychometric_curves
       grids:
         grid1:

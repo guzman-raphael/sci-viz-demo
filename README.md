@@ -55,3 +55,23 @@ To run this environment, all that is needed is to have [Docker](https://www.dock
 For the login, there are 2 options:
 - (recommended) If you are a member of DataJoint's full time staff, you can use the credentials called `SciViz DEMO: IBL Public (internal)` in our LastPass. This will allow the `Psychometric_Curves` page to render the plots properly.
 - For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, the `Psychometric_Curves` page will not render the plots as IBL has not yet made the plots publicly accessible.
+
+
+show a individual session page from a record
+show 2 metadata components
++
+show custom plot component x/y
+
+- [ ] hidden pages
+- [ ] table linking from record (primary key as restriction): thinking about improving linking visual queue, restriction not being applied, issue with restricted date->epoch
+
+- [ ] custom plot component
+
+### likely done
+- [ ] metadata updates (style + date): slow update of the epoch time conversion
+- [X] table style update
+
+- [ ] png-plot (pending)
+
+### nice to have
+- [ ] url bookmarking (though login, show redirect after success)
