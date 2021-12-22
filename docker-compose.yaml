@@ -1,4 +1,4 @@
-# HOST_UID=$(id -u) docker-compose up
+# MODE=DEV HOST_UID=$(id -u) docker-compose up
 #
 # Access using fakeservices.datajoint.io
 version: '2.4'
@@ -8,6 +8,7 @@ services:
     environment:
       # - FLASK_ENV=development # enables logging to console from Flask
       - API_SPEC_PATH=/main/specs/config.yaml # for dynamic api spec
+      - PHARUS_MODE=${MODE}  # DEV | PROD
     user: ${HOST_UID}:anaconda
     volumes:
       - ./config.yaml:/main/specs/config.yaml #copy the spec over to /main/specs/YOUR_SPEC_NAME
@@ -16,11 +17,16 @@ services:
       - -c
       - |
         pharus_update() {
-            [ -z "$$GUNICORN_PID" ] || kill $$GUNICORN_PID
-            gunicorn --bind 0.0.0.0:$${PHARUS_PORT} pharus.server:app &
-            GUNICORN_PID=$$!
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            if [ "$$PHARUS_MODE" == "DEV" ]; then
+                export DEBUG=1
+                export FLASK_ENV=development
+                pharus &
+            else
+                gunicorn --bind 0.0.0.0:$${PHARUS_PORT} pharus.server:app &
+            fi
+            PRIMARY_PID=$$!
         }
-        ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -f -i /tmp/keys/buaws-chen.pem ec2-user@3.128.2.214 -L 3306:buaws-chen-cf-rds.c0pqrqs42ez1.us-east-2.rds.amazonaws.com:3306 -N
         pharus_update
         echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring Pharus updates..."
         INIT_TIME=$$(date +%s)
@@ -47,6 +53,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJLABBOOK_BACKEND_PREFIX=/api
       - FRONTEND_SPEC_PATH=config.yaml
+      - SCIVIZ_MODE=${MODE}  # DEV | PROD
     volumes:
       - ./config.yaml:/main/config.yaml
     # ports:
@@ -56,13 +63,18 @@ services:
       - -c
       - |
         sciviz_update() {
-            [ -z "$$NGINX_PID" ] || kill $$NGINX_PID
-            rm -R /usr/share/nginx/html
-            python frontend_gen.py
-            yarn build
-            mv ./build /usr/share/nginx/html
-            nginx -g "daemon off;" &
-            NGINX_PID=$$!
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            if [ "$$SCIVIZ_MODE" == "DEV" ]; then
+                python frontend_gen.py
+                yarn run start &
+            else
+                rm -R /usr/share/nginx/html
+                python frontend_gen.py
+                yarn build
+                mv ./build /usr/share/nginx/html
+                nginx -g "daemon off;" &
+            fi
+            PRIMARY_PID=$$!
         }
         sciviz_update
         echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring SciViz updates..."
