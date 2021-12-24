@@ -64,5 +64,5 @@ For the login, there are 2 options:
 - To allow bearer tokens to be reused between service restarts:
   - Make sure to create a `.env` file with the asymmetric key pair stored in environment variables:
     - `PHARUS_PRIVATE_KEY`
-    - `PHARUS_PUBLIC_KEY`.
+    - `PHARUS_PUBLIC_KEY`
   - See `example.env` for a pair that is valid. You may directly use this for DEMO's as well.

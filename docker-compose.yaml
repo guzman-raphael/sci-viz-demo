@@ -6,7 +6,6 @@ services:
   pharus:
     image: jverswijver/pharus:0.2.3.beta.8
     environment:
-      # FLASK_ENV: development # enables logging to console from Flask
       API_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
       PHARUS_MODE: ${MODE}  # DEV | PROD
       PHARUS_PRIVATE_KEY:  # Setting this ensures that bearer tokens will remain valid across restart
