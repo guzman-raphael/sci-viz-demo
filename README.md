@@ -60,7 +60,9 @@ For the login, there are 2 options:
 - For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, the `Psychometric_Curves` page will not render the plots as IBL has not yet made the plots publicly accessible.
 
 ## Tips and Notes
-- Loading the frontend after a fresh start takes the longest since it is optimizing the hot-reloads based on the first one. After that, reloads just be much faster.
+- Loading the frontend after a fresh start takes the longest since it is optimizing the hot-reloads based on the first load. After that, reloads will be much faster.
 - To allow bearer tokens to be reused between service restarts:
-  - Make sure to create a `.env` file with the asymmetric key pair stored in environment variables `PHARUS_PRIVATE_KEY` and `PHARUS_PUBLIC_KEY`.
+  - Make sure to create a `.env` file with the asymmetric key pair stored in environment variables:
+    - `PHARUS_PRIVATE_KEY`
+    - `PHARUS_PUBLIC_KEY`.
   - See `example.env` for a pair that is valid. You may directly use this for DEMO's as well.
