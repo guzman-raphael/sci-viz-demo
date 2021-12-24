@@ -54,7 +54,7 @@ SciViz:
 
                 - `page`:
                   - Unique tabbed pages to separate areas within your single-page application
-                  - Hidden pages accessible through linking from records in table components.
+                  - Hidden pages accessible through linking from records in table components
                 - `grid`: Layout structure for organizing subcomponents (as seen in
                   [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
                   - `fixed`: For when you know exactly how many components you'd like to render
@@ -110,7 +110,7 @@ SciViz:
                 using the standard spec file and DataJoint.
 
                 Also, feel free to *click* below on a specific row of interest to be taken to the
-                single-session, hidden page. We recommend you select the session after applying the
+                single-session, hidden page. Go ahead and checkout the session after applying the
                 following filter:
                 - `session_start_time='2020-09-21 19:02:17'`
                 - `subject_uuid='70bf8cbd-d312-4654-a4ea-3a21ea2f541b'`

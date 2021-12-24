@@ -28,7 +28,7 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
 
 - `page`:
   - Unique tabbed pages to separate areas within your single-page application
-  - Hidden pages accessible through linking from records in table components.
+  - Hidden pages accessible through linking from records in table components
 - `grid`: Layout structure for organizing subcomponents (as seen in
   [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
   - `fixed`: For when you know exactly how many components you'd like to render
@@ -58,3 +58,9 @@ To run this environment, all that is needed is to have [Docker](https://www.dock
 For the login, there are 2 options:
 - (recommended) If you are a member of DataJoint's full time staff, you can use the credentials called `SciViz DEMO: IBL Public (internal)` in our LastPass. This will allow the `Psychometric_Curves` page to render the plots properly.
 - For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, the `Psychometric_Curves` page will not render the plots as IBL has not yet made the plots publicly accessible.
+
+## Tips and Notes
+- Loading the frontend after a fresh start takes the longest since it is optimizing the hot-reloads based on the first one. After that, reloads just be much faster.
+- To allow bearer tokens to be reused between service restarts:
+  - Make sure to create a `.env` file with the asymmetric key pair stored in environment variables `PHARUS_PRIVATE_KEY` and `PHARUS_PUBLIC_KEY`.
+  - See `example.env` for a pair that is valid. You may directly use this for DEMO's as well.

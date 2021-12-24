@@ -1,4 +1,4 @@
-# MODE=DEV HOST_UID=$(id -u) docker-compose up
+# MODE=DEV docker-compose up
 #
 # Access using fakeservices.datajoint.io
 version: '2.4'
@@ -9,11 +9,10 @@ services:
       # FLASK_ENV: development # enables logging to console from Flask
       API_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
       PHARUS_MODE: ${MODE}  # DEV | PROD
-      PHARUS_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDSoqbcsRWg01+Z\nMOvWh34Qy95VUcPVqu76UdyhWh2uf8jOFEnH89DT+AapbrLCN2YihpQ4vmM4juiB\n74CoKdAX+AGJXUlnaH4m7DHUqlXXzYIOz4BrnBVO7BxP9ZW2hGRPA2veNXrCI0sl\nTWJ0xoFrBCK4ONvMF6uRjH1rGEB8eEO1aIueaiF1UNbhKLw56kBxbM2RHyS+2oUs\nZS/4FqlHRBO35dxb4cE0ncuHpRufc5Qpu0oB8YIneABM12T0Z9eBYhKW994H95W2\nsvRjFKFbryxIbub3dqarmg6A3ohOuMRklnhitZ69eXhDBcbeJN2JUp+3A5SHFed9\npDRscHXHAgMBAAECggEAa6ZBDU1btmQQ2aQNBAkfPspSiNxO7+Z6WGh6D+SUgtg/\n8kKgKpbLRWnfTbyLk4LoqgCJxC5ZW1B+N9oFsOwdtAJGFsQcfcMDpjTUitG7KZ2Y\nOKWIBncw1LMLDTqAF1W2RkODX3+Ji6qp/xh7lx7UibMFY417l+UJBEv+1TsByhpn\nbMJXchxHybzQxW+9UY5JSgcNr3JQ9zMXUuRpqiZ2hSK6L7dH6HUVv21I/JEJ3nKK\ndmIAfgGiKkD8LmFgVIRnWM6AWb5R8Sjfk186bjypSs9MHrcFiVJVa7L0ZXHQs3jM\n2dJwWMJf9rGfnLyyMDU4n4wIQ0aESEvzsdSBGlLf8QKBgQDsB3OQG8ZK19RGdpVp\nPFfnib3yCHeiNqdgS/9Agay9hpyfWtK9s+DMpI19gsrMSM2EEa6j5qxWT34+BzAd\nZcRAwNMSwss66usE9fRNReZ0c7SHLv6BJl/VDjGCu4XcynE9Tq4GtIr6ena3Wnni\n9n7xuA/qpjUVt0CTy4gYZcqZxQKBgQDkdSef3YjX7f65JwV2G8u129VhmzZAGfRU\nHIVzl9v3joFllAxhoKyK7ix1gTEGoBioTtzTmTqABrpJaHLPuoFRZ3iYlUgEcgjo\nCTIco6k74CH4Mho6EI8V/Yag9GVjGHgDb150Ao6MKY/rnZhjK/9udrb2EYD7V+E4\nQiqjvzMmGwKBgE7v1whVIaYaNJY0RpfhZIy9FleB2XDY0nV0NTO/qqPgBzWMTHrB\nU+ddCSz2txhHKOSIfV23Yd+jyla4VLEgPdhiJLVbjFhyBJOuJjxJql876x5i6x8K\nVHaOvqQ4Tvaehey5CZ6Ydvp6RoXfrm/nfGEe68PQPmS62tAS+7sdH/r5AoGATmYN\n1QSXI1Ke6TcE3sUnIR9xmG9FLLY7bGnlOgfRCqEysoMdxJr42yxkwWY2RsnF7Gwz\nx8F7m9ezMeHQFI0yN5dEgUgpUK05dTdCpSVcvBlsTtoSuf5Yu/kmrDFyYZFSDgu3\n5CPEe0EADKEmXFIK9AN1Qfg7xQUhWscKDutcSCUCgYEAtX0j+9N67pUs6qvCDUlZ\nWzAq5L1RdE/t5jV5QLAm4QlQMHhqU5IAVjogUD0C2sP8+psJdW0yPKuV2UkBo/Iw\nuhSEEshUJkFOWTrb2rYMcvfdWrgVMO5DjuZrz3lCxOp4ojm6vKAOwOHw4lUH/2Kz\nK7FsGX5UOA3wQR59TmlO7lo=\n-----END PRIVATE KEY-----\n"
-      PHARUS_PUBLIC_KEY: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDSoqbcsRWg01+ZMOvWh34Qy95VUcPVqu76UdyhWh2uf8jOFEnH89DT+AapbrLCN2YihpQ4vmM4juiB74CoKdAX+AGJXUlnaH4m7DHUqlXXzYIOz4BrnBVO7BxP9ZW2hGRPA2veNXrCI0slTWJ0xoFrBCK4ONvMF6uRjH1rGEB8eEO1aIueaiF1UNbhKLw56kBxbM2RHyS+2oUsZS/4FqlHRBO35dxb4cE0ncuHpRufc5Qpu0oB8YIneABM12T0Z9eBYhKW994H95W2svRjFKFbryxIbub3dqarmg6A3ohOuMRklnhitZ69eXhDBcbeJN2JUp+3A5SHFed9pDRscHXH"
-    user: ${HOST_UID}:anaconda
+      PHARUS_PRIVATE_KEY:  # Setting this ensures that bearer tokens will remain valid across restart
+      PHARUS_PUBLIC_KEY:  # Setting this ensures that bearer tokens will remain valid across restart
     volumes:
-      - ./config.yaml:/main/specs/config.yaml #copy the spec over to /main/specs/YOUR_SPEC_NAME
+      - ./config.yaml:/main/specs/config.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
     command:
       - sh
       - -c
@@ -29,6 +28,7 @@ services:
             fi
             PRIMARY_PID=$$!
         }
+        export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
         pharus_update
         echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring Pharus updates..."
         INIT_TIME=$$(date +%s)
@@ -42,7 +42,7 @@ services:
                pharus_update
                DELTA=$$CURR_DELTA
            else
-               sleep 5
+               sleep 2
            fi
         done
     # ports:
@@ -57,7 +57,7 @@ services:
       - FRONTEND_SPEC_PATH=config.yaml
       - SCIVIZ_MODE=${MODE}  # DEV | PROD
     volumes:
-      - ./config.yaml:/main/config.yaml
+      - ./config.yaml:/main/config.yaml:ro
     # ports:
     #   - "3000:3000"
     command:
@@ -65,7 +65,7 @@ services:
       - -c
       - |
         sciviz_update() {
-            sleep 2  # delaying to ensure pharus is up
+            sleep 3  # delaying to ensure pharus is up
             [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
             if [ "$$SCIVIZ_MODE" == "DEV" ]; then
                 python frontend_gen.py
@@ -92,7 +92,7 @@ services:
                sciviz_update
                DELTA=$$CURR_DELTA
            else
-               sleep 5
+               sleep 2
            fi
         done
     networks:
