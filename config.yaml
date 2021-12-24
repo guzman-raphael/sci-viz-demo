@@ -52,7 +52,9 @@ SciViz:
 
                 ## Component Library Types
 
-                - `page`: Unique tabbed pages to separate areas within your single-page application
+                - `page`:
+                  - Unique tabbed pages to separate areas within your single-page application
+                  - Hidden pages accessible through linking from records in table components.
                 - `grid`: Layout structure for organizing subcomponents (as seen in
                   [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
                   - `fixed`: For when you know exactly how many components you'd like to render
@@ -66,6 +68,9 @@ SciViz:
                 - `metadata`: Great for showing context info for particular views
                 - `plot`: Let's face it, we are going to need to be able to plot stuff
                   - plotly
+                - `custom`: Adding new, custom components is easy with our extensibility hook. See
+                  our currently supported components [here](https://github.com/jverswijver/pharus/blob/update_dynamic_api/pharus/component_interface.py)
+                  which you can reference when creating your own.
 
                 ## Acknowledgements
 
@@ -79,7 +84,7 @@ SciViz:
         grid1:
           type: fixed
           columns: 1
-          row_height: 275
+          row_height: 340
           components:
             session table description:
               x: 0
@@ -104,8 +109,11 @@ SciViz:
                 These rules along with configuring the backend query is entirely configurable
                 using the standard spec file and DataJoint.
 
-                Also, feel free to *click* below on a specific row of interest to be taken to a
-                single-session, hidden page.
+                Also, feel free to *click* below on a specific row of interest to be taken to the
+                single-session, hidden page. We recommend you select the session after applying the
+                following filter:
+                - `session_start_time='2020-09-21 19:02:17'`
+                - `subject_uuid='70bf8cbd-d312-4654-a4ea-3a21ea2f541b'`
             Sessions:
               route: /sessions_query
               x: 0
@@ -136,20 +144,32 @@ SciViz:
         grid1:
           type: fixed
           columns: 2
-          row_height: 250
+          row_height: 150
           components:
-            session table description:
+            page description:
               x: 0
               y: 0
               height: 1
               width: 2
               type: markdown
               text: |
-                ## Description
+                ## Page Description
 
-                This is a hidden session page providing metadata and plotting details for an individual session.
-                Restrictions are provided based on the primary key passed in as query parameters to the page's URL.
-            session meta 1:
+                This is a hidden session page providing metadata and plotting details for an
+                individual session. Restrictions are provided based on the primary key passed
+                in as query parameters to the page's URL.
+            session meta description:
+              x: 1
+              y: 1
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                ## Metadata Description
+
+                This represents specific attributes of this session that we'd like to highlight
+                as metadata.
+            session meta:
               route: /session_metadata1_query
               x: 0
               y: 1
@@ -167,30 +187,68 @@ SciViz:
                         keep_all_rows=True)
                     q = (ibl_acquisition.Session * subj).proj('session_lab', 'task_protocol')
                     return dict(query=q, fetch_args=[])
-            session meta 2:
-              route: /session_metadata2_query
+            session reaction time description:
               x: 1
-              y: 1
-              height: 1
+              y: 2
+              height: 3
               width: 1
-              type: metadata
+              type: markdown
+              text: |
+                ## Stored Plot Description
+
+                Here we are looking to plot this session's reaction time over trial number. However,
+                the source for this plot needs some manipulation which is perfect for the **custom
+                component** feature.
+
+                What is actually stored in DataJoint is a Plotly JSON with 2 series depicted on the
+                left. The **gray** being the raw data and the **black** being its rolled data.
+            session reaction time:
+              route: /session_plot_query
+              x: 0
+              y: 2
+              height: 3
+              width: 1
+              type: plot:plotly:stored_json
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
               dj_query: >
-                def dj_query(ibl_subject, ibl_acquisition):
-                    subj = ibl_subject.Subject().aggr(
-                        ibl_subject.Death().proj('death_date') * dj.U('death_date'),
-                        death_date='IFNULL(death_date, NULL)',
-                        keep_all_rows=True)
-                    q = (ibl_acquisition.Session * subj).proj('subject_uuid', 'death_date')
-                    return dict(query=q, fetch_args=[])
-            Reaction time - trial number:
-              route: /session_plot_query
-              x: 2
-              y: 0
-              height: 2
-              width: 2
+                def dj_query(ibl_plotting_behavior):
+                    return dict(query=ibl_plotting_behavior.SessionReactionTimeTrialNumber, fetch_args=['plotting_data'])
+            session custom reaction time description:
+              x: 1
+              y: 5
+              height: 3
+              width: 1
+              type: markdown
+              text: |
+                ## Manipulated Plot Description
+
+                It is fairly straightforward to achieve this manipulation by using the **custom
+                component** feature.
+
+                Within our specification in `SciViz.extra_components.config`, we can simply define
+                a new component like so and utilize it here.
+
+                ```python
+                from pharus.component_interface import type_map, PlotPlotlyStoredjsonComponent
+
+                class PlotPlotlyRemoveFirst(PlotPlotlyStoredjsonComponent):
+                    def dj_query_route(self):
+                        fetch_metadata = self.fetch_metadata
+                        plotly_json = (fetch_metadata['query'] & self.restriction).fetch1(
+                            *fetch_metadata['fetch_args'])
+                        plotly_json['data'] = [plotly_json['data'][1]]
+                        return plotly_json
+
+                type_map = dict({'plot:plotly:remove_first': PlotPlotlyRemoveFirst}, **type_map)
+                ```
+            session custom reaction time:
+              route: /session_custom_plot_query
+              x: 0
+              y: 5
+              height: 3
+              width: 1
               type: plot:plotly:remove_first
               restriction: >
                 def restriction(**kwargs):

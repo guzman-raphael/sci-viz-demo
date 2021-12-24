@@ -26,7 +26,9 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
 
 ### Component Library Types
 
-- `page`: Unique tabbed pages to separate areas within your single-page application
+- `page`:
+  - Unique tabbed pages to separate areas within your single-page application
+  - Hidden pages accessible through linking from records in table components.
 - `grid`: Layout structure for organizing subcomponents (as seen in
   [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
   - `fixed`: For when you know exactly how many components you'd like to render
@@ -40,6 +42,7 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
 - `metadata`: Great for showing context info for particular views
 - `plot`: Let's face it, we are going to need to be able to plot stuff
   - plotly
+- `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/jverswijver/pharus/blob/update_dynamic_api/pharus/component_interface.py) which you can reference when creating your own.
 
 ### Acknowledgements
 
@@ -55,23 +58,3 @@ To run this environment, all that is needed is to have [Docker](https://www.dock
 For the login, there are 2 options:
 - (recommended) If you are a member of DataJoint's full time staff, you can use the credentials called `SciViz DEMO: IBL Public (internal)` in our LastPass. This will allow the `Psychometric_Curves` page to render the plots properly.
 - For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, the `Psychometric_Curves` page will not render the plots as IBL has not yet made the plots publicly accessible.
-
-
-show a individual session page from a record
-show 2 metadata components
-+
-show custom plot component x/y
-
-- [ ] hidden pages
-- [ ] table linking from record (primary key as restriction): thinking about improving linking visual queue, restriction not being applied, issue with restricted date->epoch
-
-- [ ] custom plot component
-
-### likely done
-- [ ] metadata updates (style + date): slow update of the epoch time conversion
-- [X] table style update
-
-- [ ] png-plot (pending)
-
-### nice to have
-- [ ] url bookmarking (though login, show redirect after success)
