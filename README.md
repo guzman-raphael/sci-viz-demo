@@ -22,10 +22,12 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
 - **Backend-optimized** page rendering built for big-data and scale
 - Comprehensive permission and security design enabling **flexible access control**
   modes
+- Securely **manage sensitive information** by configuring it separtely and referencing it in LC spec
 - Pain-free deployments by supporting **live-reload** on changes to configuration
+- Shared, immutable **global variables** available to all components
 
 ### Component Library Types
-
+- `markdown`: Often it is necessary to document or describe views via Markdown
 - `page`:
   - Unique tabbed pages to separate areas within your single-page application
   - Hidden pages accessible through linking from records in table components
@@ -42,6 +44,14 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
 - `metadata`: Great for showing context info for particular views
 - `plot`: Let's face it, we are going to need to be able to plot stuff
   - plotly
+- `image`: When you need to render an image file's data directly within the grid
+  - `*.apng`
+  - `*.avif`
+  - `*.gif`
+  - `*.jpeg`
+  - `*.png`
+  - `*.svg`
+  - `*.webp`
 - `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/jverswijver/pharus/blob/update_dynamic_api/pharus/component_interface.py) which you can reference when creating your own.
 
 ### Acknowledgements
@@ -53,11 +63,11 @@ of what is currently supported in SciViz.
 
 ## Instructions to run the DEMO
 
-To run this environment, all that is needed is to have [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/gettingstarted/) available. Be sure to refer to the comment header in the `docker-compose.yaml` on specific command details to bring up the environment.
+To run this environment, all that is needed is to have [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/gettingstarted/) available. Be sure to refer to the comment header in the `docker-compose.yaml` on specific command details to bring up the environment. Please create a `.env` (at least empty) as a placeholder for storing sensitive data.
 
 For the login, there are 2 options:
-- (recommended) If you are a member of DataJoint's full time staff, you can use the credentials called `SciViz DEMO: IBL Public (internal)` in our LastPass. This will allow the `Psychometric_Curves` page to render the plots properly.
-- For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, the `Psychometric_Curves` page will not render the plots as IBL has not yet made the plots publicly accessible.
+1. (recommended) If you are a member of DataJoint's full time staff, you can use the credentials called `SciViz DEMO: IBL Public (internal)` in our LastPass for application login. This will allow the `Psychometric Curves` page to render the plots properly. Also, have a look at `SciViz DEMO: IBL Public S3 (internal)` in LastPass for S3 connection details for the spinning brain GIF. Since this data is sensitive, it should be included in the `.env` so that it is properly ignored from commits. Have a look in `example.env` for more instructions.
+1. For external contributors, you may use the public credential set provided by IBL; see [here](https://int-brain-lab.github.io/iblenv/dj_docs/public_datajoint.html#accessing-the-public-database-on-your-local-machine) for more details. Be aware that based on IBL's current policy around plots, none of the plots or images will render properly as IBL has not yet made the plots publicly accessible. Specifically the plots in the `Psychometric Curves` page and the plots and spinning brain GIF in the individual `Session` pages.
 
 ## Tips and Notes
 - Loading the frontend after a fresh start takes the longest since it is optimizing the hot-reloads based on the first load. After that, reloads will be much faster.
