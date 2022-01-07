@@ -58,11 +58,11 @@ SciViz:
               width: 1
               type: markdown
               text: |
-                ## DataJoint™ powered visualization that adapts to *your* workflows
+                # DataJoint™ powered visualization that adapts to *your* workflows
 
                 ![](https://images.squarespace-cdn.com/content/v1/60e5a50c0632d17c36f6b2d3/1638463454411-SMVPVS9EBPLU9T9T5YMN/unsplash-image-Pyut03Gn98w.jpg?format=1000w)
 
-                ### Features
+                ## Features
 
                 - Visualization that can **keep up with changing needs** of your lab
                 - Standardized YAML build specification providing a **Low-Code web application
@@ -80,7 +80,7 @@ SciViz:
                 - Pain-free deployments by supporting **live-reload** on changes to configuration
                 - Shared, immutable **global variables** available to all components
 
-                ### Component Library Types
+                ## Component Library Types
                 - `markdown`: Often it is necessary to document or describe views via Markdown
                 - `page`:
                   - Unique tabbed pages to separate areas within your single-page application
@@ -89,7 +89,7 @@ SciViz:
                   [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
                   - `fixed`: For when you know exactly how many components you'd like to render
                   - `dynamic`: Component templating mode when you need to render realtime views that
-                  vary in number of components
+                    vary in number of components
                 - `table`: Sometimes there's nothing better than a table view
                   - paging
                   - sorting
@@ -108,7 +108,7 @@ SciViz:
                   - `*.webp`
                 - `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/jverswijver/pharus/blob/update_dynamic_api/pharus/component_interface.py) which you can reference when creating your own.
 
-                ### Acknowledgements
+                ## Acknowledgements
 
                 We'd like to thank [internationalbrainlab.org](https://data.internationalbrainlab.org) for releasing
                 publicly various sets of experimental workflow data. In order to provide a DEMO that
