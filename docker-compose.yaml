@@ -1,12 +1,15 @@
 # MODE=DEV docker-compose up
 #
 # Access using fakeservices.datajoint.io
+# NOTE: currently you need to trigger a change to config.yaml after first successful build until https://github.com/datajoint/otumat/issues/11 is addressed
 version: '2.4'
 services:
   pharus:
-    image: jverswijver/pharus:0.2.3.beta.10
+    cpus: 0.50
+    mem_limit: 512m
+    image: datajoint/pharus:0.4.1
     environment:
-      API_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
+      PHARUS_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
       PHARUS_MODE: ${MODE}  # DEV | PROD
     env_file: .env
     volumes:
@@ -15,45 +18,21 @@ services:
       - sh
       - -c
       - |
-        pharus_update() {
-            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
-            if [ "$$PHARUS_MODE" == "DEV" ]; then
-                export DEBUG=1
-                export FLASK_ENV=development
-                pharus &
-            else
-                gunicorn --bind 0.0.0.0:$${PHARUS_PORT} pharus.server:app &
-            fi
-            PRIMARY_PID=$$!
-        }
         export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
-        pharus_update
-        echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring Pharus updates..."
-        INIT_TIME=$$(date +%s)
-        LAST_MOD_TIME=$$(date -r $$API_SPEC_PATH +%s)
-        DELTA=$$(expr $$LAST_MOD_TIME - $$INIT_TIME)
-        while true; do
-           CURR_LAST_MOD_TIME=$$(date -r $$API_SPEC_PATH +%s)
-           CURR_DELTA=$$(expr $$CURR_LAST_MOD_TIME - $$INIT_TIME)
-           if [ "$$DELTA" -lt "$$CURR_DELTA" ]; then
-               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading Pharus since \`$$API_SPEC_PATH\` changed."
-               pharus_update
-               DELTA=$$CURR_DELTA
-           else
-               sleep 2
-           fi
-        done
+        otumat watch -f $${PHARUS_SPEC_PATH} -s /tmp/reload.sh -i 5
     # ports:
     # - "5000:5000"
     networks:
       - main
   sci-viz:
-    image: jverswijver/sciviz:0.1.2-beta.8
+    cpus: 2.0
+    mem_limit: 4g
+    image: datajoint/sci-viz:0.1.0
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_DJLABBOOK_BACKEND_PREFIX=/api
-      - FRONTEND_SPEC_PATH=config.yaml
-      - SCIVIZ_MODE=${MODE}  # DEV | PROD
+      - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
+      - DJSCIVIZ_SPEC_PATH=config.yaml
+      - DJSCIVIZ_MODE=${MODE}  # DEV | PROD
     volumes:
       - ./config.yaml:/main/config.yaml:ro
     # ports:
@@ -65,7 +44,7 @@ services:
         sciviz_update() {
             sleep 3  # delaying to ensure pharus is up
             [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
-            if [ "$$SCIVIZ_MODE" == "DEV" ]; then
+            if [ "$$DJSCIVIZ_MODE" == "DEV" ]; then
                 python frontend_gen.py
                 yarn run start &
             else
@@ -80,13 +59,13 @@ services:
         sciviz_update
         echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring SciViz updates..."
         INIT_TIME=$$(date +%s)
-        LAST_MOD_TIME=$$(date -r $$FRONTEND_SPEC_PATH +%s)
+        LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
         DELTA=$$(expr $$LAST_MOD_TIME - $$INIT_TIME)
         while true; do
-           CURR_LAST_MOD_TIME=$$(date -r $$FRONTEND_SPEC_PATH +%s)
+           CURR_LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
            CURR_DELTA=$$(expr $$CURR_LAST_MOD_TIME - $$INIT_TIME)
            if [ "$$DELTA" -lt "$$CURR_DELTA" ]; then
-               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading SciViz since \`$$FRONTEND_SPEC_PATH\` changed."
+               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading SciViz since \`$$DJSCIVIZ_SPEC_PATH\` changed."
                sciviz_update
                DELTA=$$CURR_DELTA
            else
@@ -96,7 +75,7 @@ services:
     networks:
       - main
   fakeservices.datajoint.io:
-    image: datajoint/nginx:v0.0.19
+    image: datajoint/nginx:v0.1.1
     environment:
       - ADD_pharus_TYPE=REST
       - ADD_pharus_ENDPOINT=pharus:5000

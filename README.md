@@ -52,7 +52,7 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
   - `*.png`
   - `*.svg`
   - `*.webp`
-- `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/jverswijver/pharus/blob/update_dynamic_api/pharus/component_interface.py) which you can reference when creating your own.
+- `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/datajoint/pharus/blob/master/pharus/component_interface.py) which you can reference when creating your own.
 
 ### Acknowledgements
 
