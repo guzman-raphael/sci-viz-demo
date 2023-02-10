@@ -1,59 +1,81 @@
-# MODE=DEV docker-compose up
-#
-# Access using fakeservices.datajoint.io
-# NOTE: currently you need to trigger a change to config.yaml after first successful build until https://github.com/datajoint/otumat/issues/11 is addressed
+# MYSQL_VER=8.0 docker compose up -d
 version: '2.4'
 services:
+  db:
+    image: datajoint/mysql:${MYSQL_VER}
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DJ_PASS}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 30s
+      retries: 5
+      interval: 15s
   pharus:
-    cpus: 0.50
-    mem_limit: 512m
-    image: datajoint/pharus:0.4.1
+    depends_on:
+      db:
+        condition: service_healthy
+      fakeservices.datajoint.io:
+        condition: service_healthy
+    image: datajoint/pharus:0.8.0
     environment:
-      PHARUS_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
-      PHARUS_MODE: ${MODE}  # DEV | PROD
-    env_file: .env
+      - PHARUS_SPEC_PATH=/main/specs/sciviz_spec.yaml # SciViz spec file location
+      - PHARUS_HOST=${DJ_HOST}
+      - PHARUS_USER=${DJ_USER}
+      - PHARUS_PASSWORD=${DJ_PASS}
     volumes:
-      - ./config.yaml:/main/specs/config.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
+      - ./sciviz_spec.yaml:/main/specs/sciviz_spec.yaml # mount SciViz spec file
+      - ./init.py:/main/init.py
+      - ./pip_requirements.txt:/tmp/pip_requirements.txt
     command:
       - sh
       - -c
       - |
-        export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
-        otumat watch -f $${PHARUS_SPEC_PATH} -s /tmp/reload.sh -i 5
-    # ports:
-    # - "5000:5000"
-    networks:
-      - main
+        set -e
+        # initialize test data
+        python init.py
+        # live reload
+        pharus_update() {
+            sleep 2  # delaying to ensure pharus is up
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            export DEBUG=1
+            export FLASK_ENV=development
+            pharus &
+            PRIMARY_PID=$$!
+        }
+        pharus_update
+        echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring Pharus updates..."
+        INIT_TIME=$$(date +%s)
+        LAST_MOD_TIME=$$(date -r $$PHARUS_SPEC_PATH +%s)
+        DELTA=$$(expr $$LAST_MOD_TIME - $$INIT_TIME)
+        while true; do
+           CURR_LAST_MOD_TIME=$$(date -r $$PHARUS_SPEC_PATH +%s)
+           CURR_DELTA=$$(expr $$CURR_LAST_MOD_TIME - $$INIT_TIME)
+           if [ "$$DELTA" -lt "$$CURR_DELTA" ]; then
+               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading Pharus since \`$$DJSCIVIZ_SPEC_PATH\` changed."
+               pharus_update
+               DELTA=$$CURR_DELTA
+           else
+               sleep 1
+           fi
+        done
   sci-viz:
-    cpus: 2.0
-    mem_limit: 4g
-    image: datajoint/sci-viz:0.1.0
+    image: datajoint/sci-viz:1.1.0
     environment:
-      - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
-      - DJSCIVIZ_SPEC_PATH=config.yaml
-      - DJSCIVIZ_MODE=${MODE}  # DEV | PROD
+      - DJSCIVIZ_SPEC_PATH=sciviz_spec.yaml # SciViz spec file location
     volumes:
-      - ./config.yaml:/main/config.yaml:ro
-    # ports:
-    #   - "3000:3000"
+      - ./sciviz_spec.yaml:/main/sciviz_spec.yaml # mount SciViz spec file
     command:
       - sh
       - -c
       - |
+        set -e
+        # live reload
         sciviz_update() {
             sleep 3  # delaying to ensure pharus is up
             [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
-            if [ "$$DJSCIVIZ_MODE" == "DEV" ]; then
-                python frontend_gen.py
-                yarn run start &
-            else
-                rm -R /usr/share/nginx/html
-                python frontend_gen.py
-                yarn build
-                mv ./build /usr/share/nginx/html
-                nginx -g "daemon off;" &
-            fi
+            python frontend_gen.py
+            yarn run start &
             PRIMARY_PID=$$!
         }
         sciviz_update
@@ -72,11 +94,11 @@ services:
                sleep 2
            fi
         done
-    networks:
-      - main
   fakeservices.datajoint.io:
-    image: datajoint/nginx:v0.1.1
+    image: datajoint/nginx:v0.2.4
     environment:
+      - ADD_db_TYPE=DATABASE
+      - ADD_db_ENDPOINT=db:3306
       - ADD_pharus_TYPE=REST
       - ADD_pharus_ENDPOINT=pharus:5000
       - ADD_pharus_PREFIX=/api
@@ -87,7 +109,4 @@ services:
     ports:
       - "443:443"
       - "80:80"
-    networks:
-      - main
-networks:
-  main:
+      - "3306:3306"

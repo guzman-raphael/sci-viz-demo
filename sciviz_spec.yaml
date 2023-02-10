@@ -1,0 +1,111 @@
+version: '0.0.0'
+SciViz:
+  auth: null
+  pages:
+    Home:
+      route: /home
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 1700
+          components:
+            landing description:
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                # DataJoint™ powered visualization that adapts to *your* workflows
+
+                ![](https://images.squarespace-cdn.com/content/v1/60e5a50c0632d17c36f6b2d3/1638463454411-SMVPVS9EBPLU9T9T5YMN/unsplash-image-Pyut03Gn98w.jpg?format=1000w)
+
+                ## Features
+
+                - Visualization that can **keep up with changing needs** of your lab
+                - Standardized YAML build specification providing a **Low-Code web application
+                  design** experience
+                - Transport-optimization by leveraging **client-side rendering** with
+                  [React](https://reactjs.org/)
+                - **Python+[DataJoint](https://www.datajoint.org/) interoperability** to allow
+                  streamlined integration
+                - Clear separation between business logic from product features i.e. **customization
+                  through configuration**
+                - **Backend-optimized** page rendering built for big-data and scale
+                - Comprehensive permission and security design enabling **flexible access control**
+                  modes
+                - Securely **manage sensitive information** by configuring it separtely and referencing it in LC spec
+                - Pain-free deployments by supporting **live-reload** on changes to configuration
+                - Shared, immutable **global variables** available to all components
+
+                ## Component Library Types
+                - `markdown`: Often it is necessary to document or describe views via Markdown
+                - `page`:
+                  - Unique tabbed pages to separate areas within your single-page application
+                  - Hidden pages accessible through linking from records in table components
+                - `grid`: Layout structure for organizing subcomponents (as seen in
+                  [Grafana, AWS Console](https://github.com/react-grid-layout/react-grid-layout#projects-using-react-grid-layout))
+                  - `fixed`: For when you know exactly how many components you'd like to render
+                  - `dynamic`: Component templating mode when you need to render realtime views that
+                    vary in number of components
+                - `table`: Sometimes there's nothing better than a table view
+                  - paging
+                  - sorting
+                  - filtering
+                  - font/backgrond highlighting
+                - `metadata`: Great for showing context info for particular views
+                - `plot`: Let's face it, we are going to need to be able to plot stuff
+                  - plotly
+                - `image`: When you need to render an image file's data directly within the grid
+                  - `*.apng`
+                  - `*.avif`
+                  - `*.gif`
+                  - `*.jpeg`
+                  - `*.png`
+                  - `*.svg`
+                  - `*.webp`
+                - `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/datajoint/pharus/blob/master/pharus/component_interface.py) which you can reference when creating your own.
+    Table:
+      route: /table
+      grids:
+        grid1:
+          type: fixed
+          columns: 2
+          row_height: 500
+          components:
+            table description:
+              x: 1
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                ## Description
+
+                This is an example of the `antd-table` component.
+                
+                The data set is certainly not in the realm of *big data* but there is
+                sufficient records here to demonstrate the **backend-optimized** paging,
+                sorting, and filtering. This is currently pointed to a local system so please
+                feel free to try out the features and interact with the data.
+
+                The backend query is entirely configurable using the standard spec file and
+                DataJoint.
+
+                <!---
+                Also, feel free to *click* below on a specific row of interest to be taken to
+                the single-scientist, hidden page.
+                -->
+            table comp:
+              route: /table_query
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              # link: /session
+              dj_query: >
+                def dj_query(demo):
+                    q = demo.Scientist()
+                    return dict(query=q, fetch_args=[])
