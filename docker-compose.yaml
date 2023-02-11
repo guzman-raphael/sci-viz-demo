@@ -6,7 +6,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${PHARUS_PASSWORD}
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 30s
       retries: 5
       interval: 15s
@@ -103,10 +103,10 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000"
+          "http://localhost:3000",
         ]
       timeout: 30s
-      retries: 5
+      retries: 10
       interval: 15s
   fakeservices.datajoint.io:
     image: datajoint/nginx:v0.2.4
