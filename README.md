@@ -59,7 +59,7 @@ Here are some options that provide a great demo experience:
   - Launch using [GitHub Codespaces](https://github.com/features/codespaces) using the option `Create codespace on main` in the codebase repository on your fork.
   - Build time for a 2-Core codespace is **~6m30s**. This is done infrequently and cached for convenience.
   - Start time for a 2-Core codespace is **~3m**. This will pull the built codespace from cache when you need it.
-  - Tip: GitHub auto names the codespace but you can rename the codespace so that it is easier to identify later.
+  - *Tip:* GitHub auto names the codespace but you can rename the codespace so that it is easier to identify later.
 - **Local IDE**:
   - Ensure you have [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
   - Ensure you have [Docker](https://docs.docker.com/get-docker/)
@@ -70,4 +70,8 @@ Here are some options that provide a great demo experience:
 
 You will know your environment has finished loading once you see a terminal open related to `Running postStartCommand` with a final message: `Done`.
 
-To access SciViz, use the VSCode `PORTS` tab (next to `TERMINAL`) to manage access to the forwarded ports. SciViz will be served on port 443.
+## Live Reloading
+
+- To access SciViz, use the VSCode `PORTS` tab (next to `TERMINAL`) to manage access to the forwarded ports. SciViz will be served on port 443.
+- This interactive environment sets up a developer experience where on saves to `sciviz_spec.yaml`, SciViz will automatically reload the page to reflect your changes.
+- *Tip:* Take care to save only when specifying **valid** configuration for SciViz. If you save aggressively, this could cause the underlying services to break since each save triggers a reload.
