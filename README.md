@@ -1,9 +1,3 @@
-# SciViz DEMO
-
-Welcome 👋
-
-This repository is meant to be used as a SciViz local demonstration to illustrate the latest features included as part of the visualization framework. Below you can read more about the motivation and components. 
-
 # DataJoint™ powered visualization that adapts to *your* workflows
 
 ![](https://images.squarespace-cdn.com/content/v1/60e5a50c0632d17c36f6b2d3/1638463454411-SMVPVS9EBPLU9T9T5YMN/unsplash-image-Pyut03Gn98w.jpg?format=1000w)
@@ -52,3 +46,28 @@ This repository is meant to be used as a SciViz local demonstration to illustrat
   - `*.svg`
   - `*.webp`
 - `custom`: Adding new, custom components is easy with our extensibility hook. See our currently supported components [here](https://github.com/datajoint/pharus/blob/master/pharus/component_interface.py) which you can reference when creating your own.
+
+# Running the DEMO
+
+The recommended environment to run the demo is included as a [DevContainer](https://containers.dev/).
+
+## Launch Environment
+
+Here are some options that provide a great demo experience:
+
+- **Cloud-based IDE**: (*recommended*)
+  - Launch using [GitHub Codespaces](https://github.com/features/codespaces) using the option `Create codespace on main` in the codebase repository on your fork.
+  - Build time for a 2-Core codespace is **~6m30s**. This is done infrequently and cached for convenience.
+  - Start time for a 2-Core codespace is **~3m**. This will pull the built codespace from cache when you need it.
+  - Tip: GitHub auto names the codespace but you can rename the codespace so that it is easier to identify later.
+- **Local IDE**:
+  - Ensure you have [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+  - Ensure you have [Docker](https://docs.docker.com/get-docker/)
+  - Ensure you have [VSCode](https://code.visualstudio.com/)
+  - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  - `git clone` the codebase repository and open it in VSCode
+  - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
+
+You will know your environment has finished loading once you see a terminal open related to `Running postStartCommand` with a final message: `Done`.
+
+To access SciViz, use the VSCode `PORTS` tab (next to `TERMINAL`) to manage access to the forwarded ports. SciViz will be served on port 443.
