@@ -16,6 +16,11 @@
 		"ghcr.io/guiyomh/features/vim:0": {}
 	},
 	"postStartCommand": "MYSQL_VER=8.0 docker compose up -d",
+	"forwardPorts": [
+		80,
+		443,
+		3306
+	],
 	"customizations": {
 		"vscode": {
 			"extensions": [

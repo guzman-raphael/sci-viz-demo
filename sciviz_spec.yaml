@@ -1,6 +1,34 @@
 version: '0.0.0'
 SciViz:
   auth: null
+  component_interface:
+    override: |
+      from pharus.component_interface import type_map, Component
+
+      class PlotPlotlyCustom(Component):
+          rest_verb = ["GET"]
+
+          def dj_query_route(self):
+              plot = {
+                  "data": [
+                      {
+                          "x": [x for x in range(-5, 6)],
+                          "y": [x**2 for x in range(-5, 6)],
+                          "type": "scatter",
+                      }
+                  ],
+                  'layout': {
+                      'title': f"x^2",
+                      'xaxis': {"title": "x"},
+                      'yaxis': {"title": "y"},
+                  }
+              }
+
+              return plot
+      
+      type_map = dict({
+        'plot:plotly:custom': PlotPlotlyCustom,
+      }, **type_map)
   pages:
     Home:
       route: /home
@@ -53,7 +81,6 @@ SciViz:
                   - paging
                   - sorting
                   - filtering
-                  - font/backgrond highlighting
                 - `metadata`: Great for showing context info for particular views
                 - `plot`: Let's face it, we are going to need to be able to plot stuff
                   - plotly
@@ -87,11 +114,15 @@ SciViz:
                 
                 The data set is certainly not in the realm of *big data* but there is
                 sufficient records here to demonstrate the **backend-optimized** paging,
-                sorting, and filtering. This is currently pointed to a local system so please
+                sorting, and filtering. This is currently pointed to a local test pipeline so
                 feel free to try out the features and interact with the data.
 
-                The backend query is entirely configurable using the standard spec file and
-                DataJoint.
+                The backend query is entirely configurable using the SciViz spec file and
+                the DataJoint query syntax.
+
+                Have a look at the `Table` page in `sciviz_spec.yaml` to learn how to configure this page.
+
+                Have a look in `initialize.ipynb` to learn the test pipeline.
 
                 <!---
                 Also, feel free to *click* below on a specific row of interest to be taken to
@@ -104,8 +135,113 @@ SciViz:
               height: 1
               width: 1
               type: antd-table
-              # link: /session
               dj_query: >
                 def dj_query(demo):
                     q = demo.Scientist()
-                    return dict(query=q, fetch_args=[])
+                    return dict(query=q, fetch_args={})
+    Plot:
+      route: /plot
+      grids:
+        grid1:
+          type: fixed
+          columns: 2
+          row_height: 500
+          components:
+            plot description:
+              x: 1
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                ## Description
+
+                This is an example of the `plot:plotly:stored_json` component. This is a good
+                solution when you want to improve performance by prebuilding figures and
+                simply fetch to display.
+
+                This component assumes the plot is precompiled and stored as a [plotly JSON](https://plotly.com/chart-studio-help/json-chart-schema/) in
+                a [longblob](https://datajoint.com/docs/core/concepts/query-lang/data-types) table attribute in the pipeline.
+                
+                The backend query is entirely configurable using the SciViz spec file and
+                the DataJoint query syntax.
+
+                Have a look at the `Plot` page in `sciviz_spec.yaml` to learn how to configure this page.
+
+                Have a look in `initialize.ipynb` to learn the test pipeline.
+            plot comp:
+              route: /plot_query
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: plot:plotly:stored_json
+              dj_query: >
+                def dj_query(demo):
+                    q = demo.ScientistPerformance & dict(scientist_id=0)
+                    return dict(query=q, fetch_args=['performance_plot'])
+    Custom Plot:
+      route: /custom-plot
+      grids:
+        grid1:
+          type: fixed
+          columns: 2
+          row_height: 1000
+          components:
+            plot description:
+              x: 1
+              y: 0
+              height: 1
+              width: 1
+              type: markdown
+              text: |
+                ## Description
+
+                Sometimes, generating figures on the fly is better because creating them is
+                computationally inexpensive and this saves you from managing a build job.
+                
+                Another similar use case is if you simply need to access data external to the
+                pipeline dynamically e.g. query an external REST API.
+
+                These are good cases that can be solved by creating a *custom* component.
+
+                Let's demonstrate this by creating a component (`plot:plotly:custom`) that simply displays a hard-coded [plotly JSON](https://plotly.com/chart-studio-help/json-chart-schema/).
+
+                In the SciViz spec file (`SciViz.component_interface.override`), we can define
+                a new component like this:
+
+                ```python
+                from pharus.component_interface import type_map, Component
+
+                class PlotPlotlyCustom(Component):
+                    rest_verb = ["GET"]
+
+                    def dj_query_route(self):
+                        plot = {
+                            "data": [
+                                {
+                                    "x": [x for x in range(-5, 6)],
+                                    "y": [x**2 for x in range(-5, 6)],
+                                    "type": "scatter",
+                                }
+                            ],
+                            'layout': {
+                                'title': f"x^2",
+                                'xaxis': {"title": "x"},
+                                'yaxis': {"title": "y"},
+                            }
+                        }
+
+                        return plot
+                
+                type_map = dict({
+                  'plot:plotly:custom': PlotPlotlyCustom,
+                }, **type_map)
+                ```
+            plot comp:
+              route: /custom_plot_query
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: plot:plotly:custom
