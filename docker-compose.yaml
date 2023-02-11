@@ -1,10 +1,10 @@
 # MYSQL_VER=8.0 docker compose up -d
-version: '2.4'
+version: "2.4"
 services:
   db:
     image: datajoint/mysql:${MYSQL_VER}
     environment:
-      - MYSQL_ROOT_PASSWORD=${DJ_PASS}
+      - MYSQL_ROOT_PASSWORD=${PHARUS_PASSWORD}
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 30s
@@ -19,24 +19,24 @@ services:
     image: datajoint/pharus:0.8.0
     environment:
       - PHARUS_SPEC_PATH=/main/specs/sciviz_spec.yaml # SciViz spec file location
-      - PHARUS_HOST=${DJ_HOST}
-      - PHARUS_USER=${DJ_USER}
-      - PHARUS_PASSWORD=${DJ_PASS}
+      - PHARUS_HOST
+      - PHARUS_USER
+      - PHARUS_PASSWORD
     volumes:
       - ./sciviz_spec.yaml:/main/specs/sciviz_spec.yaml # mount SciViz spec file
-      - ./init.py:/main/init.py
-      - ./pip_requirements.txt:/tmp/pip_requirements.txt
+      - ./initialize.ipynb:/main/initialize.ipynb # initialize test pipeline
+      - ./pip_requirements.txt:/tmp/pip_requirements.txt # dependencies for test pipeline
     command:
       - sh
       - -c
       - |
         set -e
         # initialize test data
-        python init.py
+        ipython --TerminalIPythonApp.file_to_run=initialize.ipynb
         # live reload
         pharus_update() {
             sleep 2  # delaying to ensure pharus is up
-            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID || echo "restarting"
             export DEBUG=1
             export FLASK_ENV=development
             pharus &
@@ -61,8 +61,9 @@ services:
   sci-viz:
     image: datajoint/sci-viz:1.1.0
     environment:
-      - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
+      - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api # Pharus API prefix
       - DJSCIVIZ_SPEC_PATH=sciviz_spec.yaml # SciViz spec file location
+      - NODE_OPTIONS="--max-old-space-size=4000" # increase build memory for larger apps
     volumes:
       - ./sciviz_spec.yaml:/main/sciviz_spec.yaml # mount SciViz spec file
     command:
@@ -73,7 +74,7 @@ services:
         # live reload
         sciviz_update() {
             sleep 3  # delaying to ensure pharus is up
-            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID || echo "restarting"
             python frontend_gen.py
             yarn run start &
             PRIMARY_PID=$$!
