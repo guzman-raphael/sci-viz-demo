@@ -16,6 +16,10 @@
 		"ghcr.io/guiyomh/features/vim:0": {}
 	},
 	"postStartCommand": "MYSQL_VER=8.0 docker compose up -d",
+	"hostRequirements": {
+		"cpus": 2,
+		"memory": "4gb"
+	 },
 	"forwardPorts": [
 		80,
 		443,
