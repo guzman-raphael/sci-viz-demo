@@ -17,8 +17,8 @@
 	},
 	"postStartCommand": "MYSQL_VER=8.0 docker compose up -d",
 	"hostRequirements": {
-		"cpus": 2,
-		"memory": "4gb"
+		"cpus": 4,
+		"memory": "8gb"
 	 },
 	"forwardPorts": [
 		80,
