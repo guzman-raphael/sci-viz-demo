@@ -15,11 +15,11 @@
 		"ghcr.io/eitsupi/devcontainer-features/jq-likes:1": {},
 		"ghcr.io/guiyomh/features/vim:0": {}
 	},
-	"postStartCommand": "MYSQL_VER=8.0 docker compose up -d",
+	"postStartCommand": "MYSQL_VER=8.0 docker compose down && MYSQL_VER=8.0 docker compose up --wait",
 	"hostRequirements": {
 		"cpus": 4,
 		"memory": "8gb"
-	 },
+	},
 	"forwardPorts": [
 		80,
 		443,
