@@ -67,6 +67,7 @@ Here are some options that provide a great demo experience:
   - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
   - `git clone` the codebase repository and open it in VSCode
   - Use the `Dev Containers extension` to `Reopen in Container` (More info in the `Getting started` included with the extension)
-  - You will know your environment has finished loading once you see a terminal open related to `Running postStartCommand` with a final message: `Done`.
+
+You will know your environment has finished loading once you see a terminal open related to `Running postStartCommand` with a final message: `Done`.
 
 To access SciViz, use the VSCode `PORTS` tab (next to `TERMINAL`) to manage access to the forwarded ports. SciViz will be served on port 443.
